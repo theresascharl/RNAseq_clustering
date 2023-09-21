@@ -123,7 +123,8 @@ load("de_fission_all_coeff.RData")
 alr_object <- list()
 for (i in 1:2) {
   r1 <- addLR(mprofiles[[i]], ivar = 1)
-  alr_object[[i]] <- r1$x.alr[de, ]
+  ok <- rownames(mprofiles[[i]]) %in% de
+  alr_object[[i]] <- r1$x.alr[ok, ]
 }
 
 save(alr_object, file = "trafo_alr_fission.RData")
@@ -131,6 +132,10 @@ save(alr_object, file = "trafo_alr_fission.RData")
 ##########################################################
 ## set of genes differentially expressed and present in 
 ## all experiments
+
+ok <- intersect(rownames(alr_object[[1]]), rownames(alr_object[[2]]))
+alr_object[[1]] <- alr_object[[1]][ok,]
+alr_object[[2]] <- alr_object[[2]][ok,]
 
 test <- cbind(alr_object[[1]], alr_object[[2]])
 ok <- complete.cases(test) 
