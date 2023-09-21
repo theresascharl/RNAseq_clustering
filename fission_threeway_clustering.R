@@ -37,7 +37,7 @@ str(M)
 # select k based on BIC ----
 Mbic <- vapply(M, function(x) x$best.bic, numeric(1))
 which.min(Mbic)
-## 12 cluster according to BIC
+## 10 cluster according to BIC
 
 # select k based on ILC ----
 icl_M <- function(object, ...)
@@ -57,20 +57,20 @@ icl_M <- function(object, ...)
 my_icl <- vapply(M, function(x) tryCatch(icl_M(x), error = function(e) NA_real_),
                  numeric(1))
 which.min(as.numeric(my_icl))
-## 12 cluster according to ICL
+## 10 cluster according to ICL
 
 ##########################################################
-# three-way clustering for G-VVI-VV with 12 components ----
+# three-way clustering for G-VVI-VV with 10 components ----
 
 # errors occur in single starts and iterations but it still works
 set.seed(123)
-init <- MatTrans.init(X1, K = 12, n.start = 10)
+init <- MatTrans.init(X1, K = 10, n.start = 10)
 
 M <- MatTrans.EM(X1, initial = init, model = "G-VVI-VV", 
                  row.skew = TRUE, col.skew = TRUE, 
                  trans = "None", silent = TRUE, size.control = 10)
 
-save(M, file = "fission_ALR_G-VVI-VV_12.RData")
+save(M, file = "fission_ALR_G-VVI-VV_10.RData")
 
 str(M)
 
@@ -81,61 +81,9 @@ M$best.model
 M$result[[1]]
 
 table(M$best.result[[1]]$id)
-genes[M$best.result[[1]]$id == 6]
 
-# cluster of SPNCRNA.1164 is 6 which is cluster 10 after ordering by dbsi
+# cluster of SPNCRNA.1164 is 10 which is cluster 8 after ordering by dbsi
 M$best.result[[1]]$id[grep("SPNCRNA.1164", genes)]
-cl6 <- genes[M$best.result[[1]]$id == 6]
-
-###############################################
-## visualize a subset of clusters flattened out
-load("fission_ALR_G-VVI-VV_12.RData")
-load("fission_alr_de_flat.RData")
-load("fission_mean_profiles_de_flat.RData")
-load("de_genes_fission_complete.RData")
-load("mprofiles_fission.RData")
-
-source("functions_cluster_postprocessing.R")
-
-## get cluster info to reorder the clusters ----
-cinfo <- cluster_map(M = M, genes = genes, type = "3way", 
-                     mprofiles = mprofiles, npcol = 4)$info 
-data1 <- fission_alr_de_flat[rownames(cinfo), ]
-data2 <- fission_mean_profiles_de_flat[rownames(cinfo), ]
-
-col <- hcl.colors(12)
-palette(col)
-
-pdf("Figure5.pdf", width = 10, height = 6)
-par(mfrow = c(2, 4), mar = c(1, 4.1, 2.1, 0.1))
-matplot(1:10, t(data1[cinfo$cluster == "cluster 1", ]), main = "cluster 1", ty = "l", 
-        ylab = "alr", col = 1, lty = 1, xlab = "", ylim = c(-3, 5.5), xaxt = "n")
-abline(v = 5.5)
-matplot(1:10, t(data1[cinfo$cluster == "cluster 2", ]), main = "cluster 2", ty = "l", 
-        ylab = "alr", col = 2, lty = 1, xlab = "", ylim = c(-3, 5.5), xaxt = "n")
-abline(v = 5.5)
-matplot(1:10, t(data1[cinfo$cluster == "cluster 7", ]), main = "cluster 7", ty = "l", 
-        ylab = "alr", col = 6, lty = 1, xlab = "", ylim = c(-3, 5.5), xaxt = "n")
-abline(v = 5.5)
-matplot(1:10, t(data1[cinfo$cluster == "cluster 10", ]), main = "cluster 10", ty = "l", 
-        ylab = "alr", col = 11, lty = 1, xlab = "", ylim = c(-3, 5.5), xaxt = "n")
-abline(v = 5.5)
-par(mar = c(1, 4.1, 0.1, 0.1))
-
-matplot(1:12, t(data2[cinfo$cluster == "cluster 1", ]), main = "", ty = "l", 
-        ylab = "mprofiles", col = 1, lty = 1, xlab = "", ylim = c(0, 1), xaxt = "n")
-abline(v = 6.5)
-matplot(1:12, t(data2[cinfo$cluster == "cluster 2", ]), main = "", ty = "l", 
-        ylab = "mprofiles", col = 2, lty = 1, xlab = "", ylim = c(0, 1), xaxt = "n")
-abline(v = 6.5)
-matplot(1:12, t(data2[cinfo$cluster == "cluster 7", ]), main = "", ty = "l", 
-        ylab = "mprofiles", col = 6, lty = 1, xlab = "", ylim = c(0, 1), xaxt = "n")
-abline(v = 6.5)
-matplot(1:12, t(data2[cinfo$cluster == "cluster 10", ]), main = "", ty = "l", 
-        ylab = "mprofiles", col = 11, lty = 1, xlab = "", ylim = c(0, 1), xaxt = "n")
-abline(v = 6.5)
-dev.off()
-
-
-
+cl10 <- genes[M$best.result[[1]]$id == 10]
+cl10
 

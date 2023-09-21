@@ -12,7 +12,7 @@ Contains code to reproduce Figure 1:
 
 2 fission_data_preprocessing.R
 
-Contains code for Step 1: Pre-processing of RNA-seq data:
+Contains code for Step 1: Pre-processing RNA-seq data:
 
 - Obtain normalised expression profiles of the genes across time
   points for a biological unit and experiment.
@@ -41,7 +41,7 @@ three-way RNAseq data.
 - Select the number of clusters based on ICL.
 
 Output:
-- fission_ALR_G-VVI-VV_11.RData
+- fission_ALR_G-VVI-VV_10.RData
 
 5 fission_twoway_clustering.R
 
@@ -52,7 +52,6 @@ Output:
 
 Output:
 - fission_Malr_VVV_4.RData
-- visualization of cluster solution: Figure7.pdf
 
 6 fission_cluster_postprocessing.R
 
@@ -64,3 +63,4 @@ Contains code for post-processing of the three-way clustering:
 Contains code for post-processing of the two-way clustering:
 - dbsi information plot: Figure6a.pdf
 - cluster map: Figure6b.pdf
+- visualisation of cluster solution: Figure7.pdf
