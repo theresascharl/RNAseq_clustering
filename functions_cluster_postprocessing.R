@@ -6,7 +6,7 @@ require("ggpubr")
 
 
 ## get posteriors and calculate dbsi ----
-get.si <- function(M = M, genes = NULL, type = "3way") {
+get_dbsi <- function(M = M, genes = NULL, type = "3way") {
   
   type <- match.arg(type, choices = c("3way", "2way"))
   
@@ -51,9 +51,9 @@ get.si <- function(M = M, genes = NULL, type = "3way") {
   return(list(result = ores, mean = mean_returned, order = o))
 }
 
-## silhouette plot after Raymaekers in R package classmap ----
-silplot_pos <- function (result, classCols = NULL, showLegend = TRUE, 
-                         showClassNumbers = FALSE, showCases = FALSE, 
+## dbsi plot after Raymaekers in R package classmap ----
+dbsi_plot <- function (result, classCols = NULL, showLegend = TRUE, 
+                         showCases = FALSE, 
                          drawLineAtAverage = FALSE, method = "dbsi",
                          topdown = TRUE, main = NULL, summary = TRUE) 
 {
@@ -98,16 +98,9 @@ silplot_pos <- function (result, classCols = NULL, showLegend = TRUE,
   df$name2 <- 1:nrow(df)
   df$name2 <- as.factor(df$name2)
   df$class <- as.factor(df$class)
-  if (showClassNumbers) {
-    mapping <- aes_string(x = "name2", y = "si", color = "class", 
-                          fill = "class")
-  }
-  else {
-    df$label <- factor(df$name, levels = levels(ayint))
-    mapping <- aes_string(x = "name2", y = "si", color = "label", 
-                          fill = "label")
-  }
-  gg <- ggplot(df, mapping) + 
+  df$label <- factor(df$name, levels = levels(ayint))
+  
+  gg <- ggplot(df, aes(x = name2, y = si, colour = class, fill = class)) + 
     geom_bar(stat = "identity", show.legend = showLegend, size = 0.05, 
              width = 0.75) + 
     labs(y = paste0("dbsi"), 
@@ -154,7 +147,7 @@ silplot_pos <- function (result, classCols = NULL, showLegend = TRUE,
   #   }
   # }
   gg <- gg + theme(plot.title = element_text(hjust = 0.5))
-  gg <- gg + theme(axis.line.x = element_line(size = 0.25))
+  gg <- gg + theme(axis.line.x = element_line(linewidth = 0.25))
   gg <- gg + theme(axis.ticks.y = element_blank())
   cln_pos <- round(tapply(as.numeric(df$name2), df$class, mean))
   gg <- gg + scale_x_discrete(expand = c(0, 0.013 * length(indsv)),
@@ -185,7 +178,7 @@ silplot_pos <- function (result, classCols = NULL, showLegend = TRUE,
 cluster_map <- function(M = M, genes = genes, type = "3way", 
                         mprofiles = mprofiles, npcol = 4) 
 {
-  res <- get.si(M, genes = genes, type=type)
+  res <- get_dbsi(M, genes = genes, type=type)
   
   type <- match.arg(type, choices = c("3way", "2way"))
   
@@ -244,17 +237,17 @@ cluster_map <- function(M = M, genes = genes, type = "3way",
   res1 <- res$result
   
   ## divide the distance by the max distance
-  mat1 <- data.frame(cluster = cl, dist = d/dmax, dbsi = res1$dbsi)
-  rownames(mat1) <- rownames(res1)
+  info <- data.frame(cluster = cl, dist = d/dmax, dbsi = res1$dbsi)
+  rownames(info) <- rownames(res1)
 
   ## plot dbsi vs dist for complete data as a panel plot
   k <- max(cl)
-  mat1$cluster <- factor(mat1$cluster, labels = paste("cluster", 1:k))
+  info$cluster <- factor(info$cluster, labels = paste("cluster", 1:k))
   
   require(ggplot2)
-    gg <- ggplot(mat1,aes(x=dist,y=dbsi,color=cluster))+
+    gg <- ggplot(info,aes(x=dist,y=dbsi,color=cluster))+
     scale_color_manual(values=hcl.colors(k))+
-    scale_x_continuous(name = "farness to cluster center", 
+    scale_x_continuous(name = "distance to cluster center", 
                        limits=c(-0.1, 1.09)) +
     scale_y_continuous(limits=c(-0.1, 1.09)) +
     geom_point()+coord_fixed()+
@@ -263,8 +256,7 @@ cluster_map <- function(M = M, genes = genes, type = "3way",
     theme(plot.title = element_text(hjust = 0.5))+
     theme(legend.position = "none")
     
-  print(gg)
-  return(invisible(mat1))
+  return(list(info = info, plot = gg))
 }  
 
 ## add chull in ggplot2 ----
