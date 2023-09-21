@@ -1,9 +1,9 @@
 ## load packages ----
-require("tidyverse")
-require("robCompositions")
-require("flexclust")
-require("RColorBrewer")
-require("ggpubr")
+library("tidyverse")
+library("robCompositions")
+library("flexclust")
+library("RColorBrewer")
+library("ggpubr")
 
 ## source helper functions ----
 source("functions_cluster_postprocessing.R")
@@ -42,7 +42,7 @@ library("e1071")
 compareMatchedClasses(malr_VVV$classification, M$best.result[[1]]$id)$crand
 
 ## get dbsi for mclust ----
-resdbsi_2way <- get_dbsi(malr_VVV, genes = genes, type = "2way")
+dbsi_2way <- get_dbsi(malr_VVV, genes = genes, type = "2way")
 
 pdf("Figure6a.pdf", width = 6, height = 6)
 dbsi_plot(dbsi_2way$result)

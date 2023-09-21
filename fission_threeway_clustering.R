@@ -22,11 +22,11 @@ str(X1)
 # find the optimal number of clusters for G-VVI-VV ----
 
 M <- list()
-for(i in 1:20) {
-  print(i)
+for (i in 1:20) {
+  cat("i =", i, "\n")
   set.seed(123)
   init <- MatTrans.init(X1, K = i, n.start = 10)
-  M[[i]] <- MatTrans.EM(X1,  initial = init, model = "G-VVI-VV", 
+  M[[i]] <- MatTrans.EM(X1, initial = init, model = "G-VVI-VV", 
                         row.skew = TRUE, col.skew = TRUE, 
                         trans = "None", silent = TRUE, size.control = 10)
 }
@@ -35,8 +35,7 @@ save(M, file = "fission_ALR_G-VVI-VV_1to20.RData")
 str(M)
 
 # select k based on BIC ----
-Mbic <- rep(0,20)
-for(i in 1:20) Mbic[i] <- M[[i]]$best.bic
+Mbic <- vapply(M, function(x) x$best.bic, numeric(1))
 which.min(Mbic)
 ## 12 cluster according to BIC
 
@@ -45,15 +44,18 @@ icl_M <- function(object, ...)
 {
   z <- object$best.result[[1]]$gamma
   n <- nrow(z)
-  if(is.null(z)) z <- matrix(1, nrow = n, ncol = 1)
+  if (is.null(z)) {
+      z <- matrix(1, nrow = n, ncol = 1)
+  }
   C <- matrix(0, n, ncol(z))
-  for(i in 1:n) 
-    C[i, which.max(z[i,])] <- 1
-  object$best.bic + 2*sum(C * ifelse(z > 0, log(z), 0))
+  for (i in 1:n) {
+      C[i, which.max(z[i,])] <- 1
+  }
+  object$best.bic + 2 * sum(C * ifelse(z > 0, log(z), 0))
 }
 
-my_icl <- rep(NA,20)
-for(i in 1:20) my_icl[i] <- try(icl_M(M[[i]])) 
+my_icl <- vapply(M, function(x) tryCatch(icl_M(x), error = function(e) NA_real_),
+                 numeric(1))
 which.min(as.numeric(my_icl))
 ## 12 cluster according to ICL
 
@@ -97,41 +99,41 @@ source("functions_cluster_postprocessing.R")
 
 ## get cluster info to reorder the clusters ----
 cinfo <- cluster_map(M = M, genes = genes, type = "3way", 
-            mprofiles = mprofiles, npcol = 4)$info 
-data1 <- fission_alr_de_flat[rownames(cinfo),]
-data2 <- fission_mean_profiles_de_flat[rownames(cinfo),]
+                     mprofiles = mprofiles, npcol = 4)$info 
+data1 <- fission_alr_de_flat[rownames(cinfo), ]
+data2 <- fission_mean_profiles_de_flat[rownames(cinfo), ]
 
 col <- hcl.colors(12)
 palette(col)
 
-pdf("Figure5.pdf", width = 10, height=6)
-par(mfrow=c(2,4), mar=c(1,4.1,2.1,0.1))
-matplot(1:10,t(data1[cinfo$cluster=="cluster 1",]),main="cluster 1", ty="l",
-        ylab="alr", col=1, lty=1, xlab="",ylim=c(-3,5.5), xaxt="n")
-abline(v=c(5.5))
-matplot(1:10,t(data1[cinfo$cluster=="cluster 2",]),main="cluster 2", ty="l",
-        ylab="alr", col=2, lty=1, xlab="",ylim=c(-3,5.5), xaxt="n")
-abline(v=c(5.5))
-matplot(1:10,t(data1[cinfo$cluster=="cluster 7",]),main="cluster 7", ty="l",
-        ylab="alr", col=6, lty=1, xlab="",ylim=c(-3,5.5), xaxt="n")
-abline(v=c(5.5))
-matplot(1:10,t(data1[cinfo$cluster=="cluster 10",]),main="cluster 10", ty="l",
-        ylab="alr", col=11, lty=1, xlab="",ylim=c(-3,5.5), xaxt="n")
-abline(v=c(5.5))
-par(mar=c(1,4.1,0.1,0.1))
+pdf("Figure5.pdf", width = 10, height = 6)
+par(mfrow = c(2, 4), mar = c(1, 4.1, 2.1, 0.1))
+matplot(1:10, t(data1[cinfo$cluster == "cluster 1", ]), main = "cluster 1", ty = "l", 
+        ylab = "alr", col = 1, lty = 1, xlab = "", ylim = c(-3, 5.5), xaxt = "n")
+abline(v = 5.5)
+matplot(1:10, t(data1[cinfo$cluster == "cluster 2", ]), main = "cluster 2", ty = "l", 
+        ylab = "alr", col = 2, lty = 1, xlab = "", ylim = c(-3, 5.5), xaxt = "n")
+abline(v = 5.5)
+matplot(1:10, t(data1[cinfo$cluster == "cluster 7", ]), main = "cluster 7", ty = "l", 
+        ylab = "alr", col = 6, lty = 1, xlab = "", ylim = c(-3, 5.5), xaxt = "n")
+abline(v = 5.5)
+matplot(1:10, t(data1[cinfo$cluster == "cluster 10", ]), main = "cluster 10", ty = "l", 
+        ylab = "alr", col = 11, lty = 1, xlab = "", ylim = c(-3, 5.5), xaxt = "n")
+abline(v = 5.5)
+par(mar = c(1, 4.1, 0.1, 0.1))
 
-matplot(1:12,t(data2[cinfo$cluster=="cluster 1",]),main="", ty="l",
-        ylab="mprofiles", col=1, lty=1, xlab="",ylim=c(0,1), xaxt="n")
-abline(v=c(6.5))
-matplot(1:12,t(data2[cinfo$cluster=="cluster 2",]),main="", ty="l",
-        ylab="mprofiles", col=2, lty=1, xlab="",ylim=c(0,1), xaxt="n")
-abline(v=c(6.5))
-matplot(1:12,t(data2[cinfo$cluster=="cluster 7",]),main="", ty="l",
-        ylab="mprofiles", col=6, lty=1, xlab="",ylim=c(0,1), xaxt="n")
-abline(v=c(6.5))
-matplot(1:12,t(data2[cinfo$cluster=="cluster 10",]),main="", ty="l",
-        ylab="mprofiles", col=11, lty=1, xlab="",ylim=c(0,1), xaxt="n")
-abline(v=c(6.5))
+matplot(1:12, t(data2[cinfo$cluster == "cluster 1", ]), main = "", ty = "l", 
+        ylab = "mprofiles", col = 1, lty = 1, xlab = "", ylim = c(0, 1), xaxt = "n")
+abline(v = 6.5)
+matplot(1:12, t(data2[cinfo$cluster == "cluster 2", ]), main = "", ty = "l", 
+        ylab = "mprofiles", col = 2, lty = 1, xlab = "", ylim = c(0, 1), xaxt = "n")
+abline(v = 6.5)
+matplot(1:12, t(data2[cinfo$cluster == "cluster 7", ]), main = "", ty = "l", 
+        ylab = "mprofiles", col = 6, lty = 1, xlab = "", ylim = c(0, 1), xaxt = "n")
+abline(v = 6.5)
+matplot(1:12, t(data2[cinfo$cluster == "cluster 10", ]), main = "", ty = "l", 
+        ylab = "mprofiles", col = 11, lty = 1, xlab = "", ylim = c(0, 1), xaxt = "n")
+abline(v = 6.5)
 dev.off()
 
 
