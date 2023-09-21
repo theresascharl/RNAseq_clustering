@@ -134,8 +134,8 @@ save(alr_object, file = "trafo_alr_fission.RData")
 ## all experiments
 
 ok <- intersect(rownames(alr_object[[1]]), rownames(alr_object[[2]]))
-alr_object[[1]] <- alr_object[[1]][ok,]
-alr_object[[2]] <- alr_object[[2]][ok,]
+alr_object[[1]] <- alr_object[[1]][ok, ]
+alr_object[[2]] <- alr_object[[2]][ok, ]
 
 test <- cbind(alr_object[[1]], alr_object[[2]])
 ok <- complete.cases(test) 
@@ -146,7 +146,7 @@ save(genes, file = "de_genes_fission_complete.RData")
 #########################################################
 ## ALR profiles of differentially expressed genes flat
 
-fission_alr_de_flat <- test[ok,]
+fission_alr_de_flat <- test[ok, ]
 save(fission_alr_de_flat, file = "fission_alr_de_flat.RData")
 
 #########################################################
@@ -159,12 +159,13 @@ X1 <- array(NA_real_, dim = c(p, T, n))
 
 X1[1, , ] <- t(alr_object[[1]][genes, , drop = FALSE])
 X1[2, , ] <- t(alr_object[[2]][genes, , drop = FALSE])
-save(X1, file="fission_ALR_de_array.RData")
+save(X1, file = "fission_ALR_de_array.RData")
 
 
 #########################################################
 ## mean profiles of differentially expressed genes
 
-fission_mean_profiles_de_flat <- cbind(mprofiles[[1]][genes,], mprofiles[[2]][genes,])
-save(fission_mean_profiles_de_flat, file="fission_mean_profiles_de_flat.RData")
+fission_mean_profiles_de_flat <- cbind(mprofiles[[1]][genes, ],
+                                       mprofiles[[2]][genes, ])
+save(fission_mean_profiles_de_flat, file = "fission_mean_profiles_de_flat.RData")
 
