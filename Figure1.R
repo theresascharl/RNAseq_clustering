@@ -19,7 +19,7 @@ myNclus <- rbind(mvtnorm::rmvnorm(n, mean = c(-3, -3),
                                   sigma = matrix(c(0.1, 0.09, 0.09, 0.1), 2)))
 colnames(myNclus) <- c("x1", "x2")
 
-# transformation to the simplex
+## transformation to the simplex
 data1 <- addLRinv(myNclus, cnames = c("x1", "x2", "x3"), ivar = 1)
 
 ## a data set with 5 multivariate normal groups in Euclidean space ----
@@ -35,7 +35,7 @@ myNclus2 <- rbind(mvtnorm::rmvnorm(2*n, mean = c(-5, -6)),
                                    sigma = diag(rep(0.1, 2))))
 colnames(myNclus2) <- c("x1", "x2")
 
-# transformation to the simplex
+## transformation to the simplex
 data2 <- addLRinv(myNclus2, cnames = c("x1", "x2", "x3"), ivar = 1)
 
 pdf("Figure1.pdf")

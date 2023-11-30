@@ -4,7 +4,29 @@ library("flexclust")
 library("RColorBrewer")
 library("ggpubr")
 
-## get posteriors and calculate dbsi ----
+
+#' Get posteriors and calculate dbsi 
+#'
+#' @param M A cluster result either from package MatTransMix or Mclust. 
+#' @param genes A vector of gene names corresponding to the rows in the 
+#' cluster result.
+#' @param type Either "2way" (Mclust) or "3way" (MatTransMix) cluster object.
+#' @return A list containing the data.frame 'result' with 8 variables: 
+#'    p1 largest posterior (where max is set to 0.99999)
+#'    p2 second largest posterior (where min is set to 0.00001)
+#'    pac probability of the alternative class after Raymaekers in 
+#'        R package classmap
+#'    c1 cluster number with largest posterior
+#'    ca cluster number with second largest posterior
+#'    r log ratio between p1 and p2
+#'    dbsi ratio of r and max(r)
+#'    co newly assigned cluster number where cluster 1 has to largest dbsi
+#'    
+#' the 'order' of the original clusters and
+#' the 'mean' of the dbsi values as an indicator for the overall cluster quality.
+#' @examples
+#' dbsi_3way <- get_dbsi(M, genes = genes)
+
 get_dbsi <- function(M = M, genes = NULL, type = "3way") {
   
   type <- match.arg(type, choices = c("3way", "2way"))
@@ -52,28 +74,30 @@ get_dbsi <- function(M = M, genes = NULL, type = "3way") {
 }
 
 ## dbsi plot after Raymaekers in R package classmap ----
-dbsi_plot <- function (result, classCols = NULL, showLegend = TRUE, 
-                       showCases = FALSE, 
-                       drawLineAtAverage = FALSE, method = "dbsi",
+
+#' Density-based silhouette information plot 
+#'
+#' @param result The 'result' element of the returned object of function
+#' 'get_dbsi'. 
+#' @param showLegend Logical. Should a legend of the cluster dbsi and size be
+#' included.
+#' @param drawLineAtAverage Logical. Should average dbsi lines be included.
+#' @param topdown Logical. Should the genes be ordered topdown or bottomup.
+#' @param main Logical. Should a header be included.
+#' @param summary Logical. Should a summary be printed in the console.
+#' @return A dbsi information plot.
+#' @examples
+#' dbsi_plot(dbsi_3way$result)
+
+dbsi_plot <- function (result, showLegend = TRUE, drawLineAtAverage = FALSE, 
                        topdown = TRUE, main = NULL, summary = TRUE) 
 {
   result$co <- factor(result$co)
   nlab <- nlevels(result$co)
   
   lvls <- 1:nlab
-  if (is.null(classCols)) {
-    classCols <- hcl.colors(nlab)
-  } else {
-    if (!is.vector(classCols)) {
-      stop("classCols should be a vector")
-    }
-    if (length(classCols) < nlab) {
-      stop(paste0("The length of classCols should be at", 
-                  " least nlevels(factor(result$co)) = ", nlab, "."))
-    }
-    classCols <- classCols[seq_len(nlab)]
-  }
-  
+  classCols <- hcl.colors(nlab)
+
   yintv <- result$co
   indsv <- which(!is.na(yintv))
   ayint <- sort(unique(yintv))
@@ -158,6 +182,28 @@ dbsi_plot <- function (result, classCols = NULL, showLegend = TRUE,
 
 
 ## add compactness of clusters
+
+#' Cluster map 
+#'
+#' @param M A cluster result either from package MatTransMix or Mclust. 
+#' @param genes A vector of gene names corresponding to the rows in the 
+#' cluster result.
+#' @param type Either "2way" (Mclust) or "3way" (MatTransMix) cluster object.
+#' @param mprofiles A list of mean profiles where the rows are the genes and the columns are the samples and the rownames are the gene names.
+#' @param npcol Number of columns used in the panel plot.
+#' @return A list of 2 containing the dataframe 'info' with
+#'   rows corresponding to the clustered genes and variables
+#'   cluster the hard cluster membership
+#'   dist the Euclidean distance to the cluster center standardized by dividing
+#'   by the max distance
+#'   dbsi the density-based silhouette information and
+#' A panel plot where for each cluster the dbsi as a measure of cluster 
+#' separation in the transformed space is plotted against the distance of genes 
+#' to their cluster center in the original space.
+#' @examples
+#' cluster_map(M = M, genes = genes, type = "3way", mprofiles = mprofiles, 
+#' npcol = 4)$plot
+#' 
 cluster_map <- function(M = M, genes = genes, type = c("3way", "2way"),
                         mprofiles = mprofiles, npcol = 4) 
 {
@@ -224,8 +270,8 @@ cluster_map <- function(M = M, genes = genes, type = c("3way", "2way"),
   info$cluster <- factor(info$cluster, labels = paste("cluster", 1:k))
   
   require("ggplot2")
-  gg <- ggplot(info, aes(x = dist, y = dbsi,color = cluster))+
-      scale_color_manual(values = hcl.colors(k))+
+  gg <- ggplot(info, aes(x = dist, y = dbsi,color = cluster)) +
+      scale_color_manual(values = hcl.colors(k)) +
       scale_x_continuous(name = "distance to cluster center", 
                          limits = c(-0.1, 1.09)) +
       scale_y_continuous(limits = c(-0.1, 1.09)) +
@@ -256,4 +302,25 @@ stat_chull <- function(mapping = NULL, data = NULL, geom = "polygon",
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
     params = list(na.rm = na.rm, ...)
   )
+}
+
+#' Calculate the ICL from posteriors of a MatTransMix object 
+#'
+#' @param object A cluster result from package MatTransMix. 
+#' @return The ICL of a cluster result. 
+#' @examples
+#' icl_M(M)
+
+icl_M <- function(object, ...)
+{
+  z <- object$best.result[[1]]$gamma
+  n <- nrow(z)
+  if (is.null(z)) {
+    z <- matrix(1, nrow = n, ncol = 1)
+  }
+  C <- matrix(0, n, ncol(z))
+  for (i in 1:n) {
+    C[i, which.max(z[i,])] <- 1
+  }
+  object$best.bic + 2 * sum(C * ifelse(z > 0, log(z), 0))
 }

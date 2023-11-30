@@ -7,7 +7,7 @@ Transformations and Matrix-Variate Gaussian Mixture Models
 1 Figure1.R
 
 Contains code to reproduce Figure 1:
-- Generate the 2 artificial data sets,
+- Generate the 2 artificial data sets.
 - Visualise the data in the simplex and R2.
 
 2 fission_data_preprocessing.R
@@ -64,3 +64,14 @@ Contains code for post-processing of the two-way clustering:
 - dbsi information plot: Figure6a.pdf
 - cluster map: Figure6b.pdf
 - visualisation of cluster solution: Figure7.pdf
+
+7 simulation_study.R
+
+- Generate 100 artificial datasets drawn from the three-way
+  cluster solution of the fission data.
+- Perform three-way and two-way model-based clustering as well as
+  k-means clustering.
+
+Contains code to create
+- visualisation of the performance: Figure8a.pdf 
+- visualisation of the number of selected clusters: Figure8b.pdf
