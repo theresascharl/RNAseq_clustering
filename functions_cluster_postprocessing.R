@@ -33,7 +33,7 @@ get_dbsi <- function(M = M, genes = NULL, type = "3way") {
   
   ## get posteriors 
   pos <- if (type == "2way") M$z
-         else M$best.result[[1]]$gamma
+         else M$gamma
   
   ## number of classes
   n <- ncol(pos)
@@ -211,7 +211,7 @@ cluster_map <- function(M = M, genes = genes, type = c("3way", "2way"),
   type <- match.arg(type)
   
   if (type == "3way")  {
-    M1 <- M$best.result[[1]]
+    M1 <- M
     
     ## estimated means reordered by average dbsi
     mu <- M1$Mu[, , res$order]

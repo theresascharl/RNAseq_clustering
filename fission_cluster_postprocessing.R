@@ -12,13 +12,13 @@ source("functions_cluster_postprocessing.R")
 col <- hcl.colors(10)
 palette(col)
 
-## load threeway cluster result ----
-load("fission_ALR_G-VVI-VV_10.RData")
+## load three-way cluster result ----
+load("fission_ALR_G-VVI-VAR1_1to20.RData")
 load("de_genes_fission_complete.RData")
 load("mprofiles_fission.RData")
 
 ## calculate dbsi ----
-dbsi_3way <- get_dbsi(M, genes = genes)
+dbsi_3way <- get_dbsi(fit_ar1[[10]], genes = genes)
 
 ## dbsi plot ----
 pdf("Figure3.pdf", width = 6, height = 6)
@@ -27,13 +27,12 @@ dev.off()
 
 ## cluster map ----
 pdf("Figure4.pdf", width = 6, height = 6)
-cluster_map(M = M, genes = genes, type = "3way", 
+cluster_map(M = fit_ar1[[10]], genes = genes, type = "3way", 
             mprofiles = mprofiles, npcol = 4)$plot 
 dev.off()
 
 ###############################################
 ## visualize a subset of clusters flattened out
-load("fission_ALR_G-VVI-VV_10.RData")
 load("fission_alr_de_flat.RData")
 load("fission_mean_profiles_de_flat.RData")
 load("de_genes_fission_complete.RData")
@@ -42,13 +41,17 @@ load("mprofiles_fission.RData")
 source("functions_cluster_postprocessing.R")
 
 ## get cluster info to reorder the clusters ----
-cinfo <- cluster_map(M = M, genes = genes, type = "3way", 
+cinfo <- cluster_map(M = fit_ar1[[10]], genes = genes, type = "3way", 
                      mprofiles = mprofiles, npcol = 4)$info 
 data1 <- fission_alr_de_flat[rownames(cinfo), ]
 data2 <- fission_mean_profiles_de_flat[rownames(cinfo), ]
 
 col <- hcl.colors(10)
 palette(col)
+
+# cluster of SPNCRNA.1164 is 10 which is cluster 7 after ordering by dbsi
+fit_ar1[[10]]$id[grep("SPNCRNA.1164", genes)]
+cinfo[grep("SPNCRNA.1164", rownames(cinfo)),]
 
 pdf("Figure5.pdf", width = 10, height = 6)
 par(mfrow = c(2, 4), mar = c(3.1, 4.1, 2.1, 0.1))
@@ -85,13 +88,13 @@ for(i in 1:nrow(dat)) {
 abline(v = 5.5)
 axis(1, at = c(3,8), label = c("WT", "Mut"), tick = FALSE)
 
-matplot(1:10, t(data1[cinfo$cluster == "cluster 8", ]), main = "cluster 8", 
-        ty = "n", ylab = "alr", col = 8, lty = 1, xlab = "", ylim = c(-3, 5.5),
+matplot(1:10, t(data1[cinfo$cluster == "cluster 7", ]), main = "cluster 7", 
+        ty = "n", ylab = "alr", col = 7, lty = 1, xlab = "", ylim = c(-3, 5.5),
         xaxt = "n")
-dat <- data1[cinfo$cluster == "cluster 8", ]
+dat <- data1[cinfo$cluster == "cluster 7", ]
 for(i in 1:nrow(dat)) {
-  lines(1:5, dat[i,1:5], col = 8)
-  lines(6:10, dat[i,6:10], col = 8)
+  lines(1:5, dat[i,1:5], col = 7)
+  lines(6:10, dat[i,6:10], col = 7)
 }
 abline(v = 5.5)
 axis(1, at = c(3,8), label = c("WT", "Mut"), tick = FALSE)
@@ -127,12 +130,12 @@ for(i in 1:nrow(dat)) {
 }
 abline(v = 6.5)
 
-matplot(1:12, t(data2[cinfo$cluster == "cluster 8", ]), main = "", ty = "n", 
-        ylab = "mprofiles", col = 8, lty = 1, xlab = "", ylim = c(0, 1), xaxt = "n")
-dat <- data2[cinfo$cluster == "cluster 8", ]
+matplot(1:12, t(data2[cinfo$cluster == "cluster 7", ]), main = "", ty = "n", 
+        ylab = "mprofiles", col = 7, lty = 1, xlab = "", ylim = c(0, 1), xaxt = "n")
+dat <- data2[cinfo$cluster == "cluster 7", ]
 for(i in 1:nrow(dat)) {
-  lines(1:6, dat[i,1:6], col = 8)
-  lines(7:12, dat[i,7:12], col = 8)
+  lines(1:6, dat[i,1:6], col = 7)
+  lines(7:12, dat[i,7:12], col = 7)
 }
 abline(v = 6.5)
 dev.off()
@@ -144,11 +147,9 @@ load("fission_Malr_VVV_4.RData")
 
 ## calculate the adjusted rand index ----
 library("e1071")
-compareMatchedClasses(M$best.result[[1]]$id, malr_VVV$classification)$crand
+compareMatchedClasses(fit_ar1[[10]]$id, malr_VVV$classification)$crand
 # 0.15 compare large to small
-compareMatchedClasses(malr_VVV$classification, M$best.result[[1]]$id)$crand
-# 0.78 compare small to large 
-(tb <- table(threeway = M$best.result[[1]]$id, twoway = malr_VVV$classification))
+(tb <- table(threeway = fit_ar1[[10]]$id, twoway = malr_VVV$classification))
 
 library("xtable")
 xtable(tb)
@@ -156,11 +157,12 @@ xtable(tb)
 ## now also compare to kmeans
 load("fission_kmeans_3_silhouette.RData")
 
-compareMatchedClasses(M$best.result[[1]]$id, kmeans3)$crand
+compareMatchedClasses(fit_ar1[[10]]$id, kmeans3)$crand
 #0.14
-(tb <- table(threeway = M$best.result[[1]]$id, kmeans = kmeans3))
+(tb <- table(threeway = fit_ar1[[10]]$id, kmeans = kmeans3))
 xtable(tb)
 
+###########################################################
 ## get dbsi for mclust ----
 dbsi_2way <- get_dbsi(malr_VVV, genes = genes, type = "2way")
 
@@ -168,7 +170,8 @@ pdf("Figure6a.pdf", width = 6, height = 6)
 dbsi_plot(dbsi_2way$result)
 dev.off()
 
-## cluster map ----
+###########################################################
+## cluster map for mclust ----
 pdf("Figure6b.pdf", width = 6, height = 6)
 cluster_map(M = malr_VVV, genes = genes, type = "2way", 
             mprofiles = mprofiles, npcol = 2)$plot 

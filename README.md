@@ -38,10 +38,13 @@ three-way RNAseq data.
 - Fit finite mixture models with matrix-normal components where the
   parameters are specified as G-VVI-VV and different number of
   components.
-- Select the number of clusters based on ICL.
+- In a refinement step a modified three-way clustering solution is
+  obtained for a column-wise covariance matrix with AR1.
+- Select the number of clusters based on BIC and ICL.
 
 Output:
-- fission_ALR_G-VVI-VV_10.RData
+- fission_ALR_G-VVI-VV_1to20.RData
+- fission_ALR_G-VVI-VAR1_1to20.RData
 
 5 fission_twoway_clustering.R
 
@@ -68,9 +71,10 @@ Contains code for post-processing of the two-way clustering:
 7 simulation_study.R
 
 - Generate 100 artificial datasets drawn from the three-way
-  cluster solution of the fission data.
-- Perform three-way and two-way model-based clustering as well as
-  k-means clustering.
+  cluster solution of the fission data with AR1 column-wise
+  covariance matrix.
+- Perform three-way clustering, the refinement step using AR1, two-way
+  model-based clustering as well as k-means clustering.
 
 Contains code to create
 - visualisation of the performance: Figure8a.pdf 
